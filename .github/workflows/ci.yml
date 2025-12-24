@@ -11,7 +11,7 @@ jobs:
         python-version: 3.12
     - run: |
         pip install --upgrade pip
-        pip install -r fast_api_app/requirements.txt pytest httpx
+        pip install pytest httpx fastapi sqlalchemy asyncpg uvicorn pydantic
       working-directory: ./fast_api_app
     - run: pytest . -v
       working-directory: ./fast_api_app
