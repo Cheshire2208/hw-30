@@ -1,12 +1,54 @@
-name: Python CI
+name: hw-30
 on: [push, pull_request]
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
-      with:
-        python-version: 3.12
-    - run: pip install pytest
-    - run: pytest fast_api_app/ -v
+      with: python-version: 3.12
+    - run: pip install pytest httpx fastapi sqlalchemy asyncpg
+      working-directory: ./fast_api_app
+    - run: pytest . -v
+      working-directory: ./fast_api_app
+
+  lint-flake8:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with: python-version: 3.12
+    - run: pip install flake8
+    - run: flake8 .
+      working-directory: ./fast_api_app
+
+  lint-black:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with: python-version: 3.12
+    - run: pip install black
+    - run: black --check --diff .
+      working-directory: ./fast_api_app
+
+  lint-isort:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with: python-version: 3.12
+    - run: pip install isort
+    - run: isort --check-only --diff .
+      working-directory: ./fast_api_app
+
+  lint-mypy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with: python-version: 3.12
+    - run: pip install mypy
+    - run: mypy .
+      working-directory: ./fast_api_app
