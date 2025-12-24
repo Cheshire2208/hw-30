@@ -1,12 +1,69 @@
-name: Python CI
+name: hw-30
 on: [push, pull_request]
+
 jobs:
   test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - run: |
+          pip install --upgrade pip
+          pip install pytest httpx fastapi sqlalchemy asyncpg aiosqlite uvicorn pydantic
+        working-directory: ./fast_api_app
+      - run: pytest . -v
+        working-directory: ./fast_api_app
+
+  lint-flake8:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
         python-version: 3.12
-    - run: pip install pytest
-    - run: pytest fast_api_app/ -v
+    - run: |
+        pip install --upgrade pip
+        pip install flake8
+      working-directory: ./fast_api_app
+    - run: flake8 .
+
+  lint-black:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+    - run: |
+        pip install --upgrade pip
+        pip install black
+      working-directory: ./fast_api_app
+    - run: black --check .
+
+  lint-isort:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+    - run: |
+        pip install --upgrade pip
+        pip install isort
+      working-directory: ./fast_api_app
+    - run: isort --check-only .
+
+  lint-mypy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+    - run: |
+        pip install --upgrade pip
+        pip install mypy
+      working-directory: ./fast_api_app
+    - run: mypy .
