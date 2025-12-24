@@ -13,7 +13,7 @@ jobs:
           pip install --upgrade pip
           pip install pytest pytest-asyncio httpx fastapi sqlalchemy aiosqlite uvicorn pydantic
         working-directory: ./fast_api_app
-      - run: pytest . -v
+      - run: pytest . -v --asyncio-mode=auto
         working-directory: ./fast_api_app
 
   lint-flake8:
