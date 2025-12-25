@@ -1,14 +1,12 @@
-from typing import List
-
-from fastapi import FastAPI, status, Depends, HTTPException
-from sqlalchemy import desc
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-
+from typing import AsyncGenerator, List
 
 import models
 import schemas
-from database import engine, session, async_session
+from database import async_session, engine, session
+from fastapi import Depends, FastAPI, HTTPException, status
+from sqlalchemy import desc
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 app = FastAPI()
 
@@ -25,23 +23,25 @@ async def shutdown():
     await engine.dispose()
 
 
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         yield session
 
 
-@app.post("/recipes/", response_model=schemas.RecipeDetailOut, status_code=status.HTTP_201_CREATED)
-async def create_recipe(
-        recipe: schemas.RecipeCreate,
-        db: AsyncSession = Depends(get_db)
-):
+get_db_dep = Depends(get_db)
 
+
+@app.post(
+    "/recipes/",
+    response_model=schemas.RecipeDetailOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_recipe(recipe: schemas.RecipeCreate, db: AsyncSession = get_db_dep):
     stmt = select(models.Recipe).where(models.Recipe.recipe_name == recipe.recipe_name)
     result = await db.execute(stmt)
     if result.scalar_one_or_none():
         raise HTTPException(
-            status_code=400,
-            detail="Рецепт с таким названием уже существует"
+            status_code=400, detail="Рецепт с таким названием уже существует"
         )
 
     db_recipe = models.Recipe(**recipe.dict())
@@ -53,29 +53,20 @@ async def create_recipe(
 
 @app.get("/recipes/", response_model=List[schemas.RecipeListOut])
 async def get_recipes_list(
-        skip: int = 0,
-        limit: int = 100,
-        db: AsyncSession = Depends(get_db)
+    skip: int = 0, limit: int = 100, db: AsyncSession = get_db_dep
 ):
     stmt = (
         select(models.Recipe)
-        .order_by(
-            desc(models.Recipe.views_count),
-            models.Recipe.cooking_time_minutes
-        )
+        .order_by(desc(models.Recipe.views_count), models.Recipe.cooking_time_minutes)
         .offset(skip)
         .limit(limit)
     )
     result = await db.execute(stmt)
-    recipes = result.scalars().all()
-    return recipes
+    return result.scalars().all()
 
 
 @app.get("/recipes/{recipe_id}", response_model=schemas.RecipeDetailOut)
-async def get_recipe_detail(
-        recipe_id: int,
-        db: AsyncSession = Depends(get_db)
-):
+async def get_recipe_detail(recipe_id: int, db: AsyncSession = get_db_dep):
     stmt = select(models.Recipe).where(models.Recipe.id == recipe_id)
     result = await db.execute(stmt)
     recipe = result.scalar_one_or_none()
@@ -83,9 +74,7 @@ async def get_recipe_detail(
     if not recipe:
         raise HTTPException(status_code=404, detail="Рецепт не найден")
 
-    recipe.views_count += 1
+    recipe.views_count = int(recipe.views_count + 1)
     await db.commit()
 
     return recipe
-
-

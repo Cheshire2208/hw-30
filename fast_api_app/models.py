@@ -1,10 +1,9 @@
-from sqlalchemy import Column, String, Integer, Text
-
 from database import Base
+from sqlalchemy import Column, Integer, String, Text
 
 
 class Recipe(Base):
-    __tablename__ = 'recipes'
+    __tablename__ = "recipes"
 
     id = Column(Integer, primary_key=True, index=True)
     recipe_name = Column(String, unique=True, index=True)

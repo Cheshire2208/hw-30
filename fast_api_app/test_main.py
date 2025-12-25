@@ -1,8 +1,8 @@
-import pytest
-from httpx import AsyncClient, ASGITransport
 import models
-from main import app, get_db
+import pytest
 from database import async_session
+from httpx import ASGITransport, AsyncClient
+from main import app, get_db
 
 
 @pytest.fixture(scope="function")
@@ -17,8 +17,7 @@ async def client():
         await conn.run_sync(models.Base.metadata.create_all)
 
     async with AsyncClient(
-            transport=ASGITransport(app=app),
-            base_url="http://test"
+        transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
         yield ac
 
@@ -30,27 +29,35 @@ async def client():
 
 @pytest.mark.asyncio
 async def test_create_recipe(client):
-    response = await client.post('/recipes/', json={
-        "recipe_name": "test",
-        "cooking_time_minutes": 10,
-        "ingredients": "smth1, smth2",
-        "description": "for testing"
-    })
+    response = await client.post(
+        "/recipes/",
+        json={
+            "recipe_name": "test",
+            "cooking_time_minutes": 10,
+            "ingredients": "smth1, smth2",
+            "description": "for testing",
+        },
+    )
     assert response.status_code == 201
+
 
 @pytest.mark.asyncio
 async def test_get_all_recipes(client):
-    response = await client.get('/recipes/' )
+    response = await client.get("/recipes/")
     assert response.status_code == 200
+
 
 @pytest.mark.asyncio
 async def test_get_recipe_details(client):
-    response = await client.post('/recipes/', json={
-        "recipe_name": "test",
-        "cooking_time_minutes": 10,
-        "ingredients": "smth1, smth2",
-        "description": "for testing"
-    })
-    recipe_id = response.json()['id']
-    response = await client.get(f'/recipes/{recipe_id}' )
+    response = await client.post(
+        "/recipes/",
+        json={
+            "recipe_name": "test",
+            "cooking_time_minutes": 10,
+            "ingredients": "smth1, smth2",
+            "description": "for testing",
+        },
+    )
+    recipe_id = response.json()["id"]
+    response = await client.get(f"/recipes/{recipe_id}")
     assert response.status_code == 200

@@ -2,3 +2,9 @@ fastapi
 uvicorn[standard]
 sqlalchemy[asyncio]
 aiosqlite
+black
+flake8
+flake8-bugbear
+flake8-pie
+isort
+mypy

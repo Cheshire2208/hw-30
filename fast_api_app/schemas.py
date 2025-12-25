@@ -1,6 +1,4 @@
 from pydantic import BaseModel
-from typing import List, Optional
-
 
 
 class RecipeCreate(BaseModel):
@@ -8,7 +6,6 @@ class RecipeCreate(BaseModel):
     cooking_time_minutes: int
     ingredients: str
     description: str
-
 
 
 class RecipeListOut(BaseModel):
